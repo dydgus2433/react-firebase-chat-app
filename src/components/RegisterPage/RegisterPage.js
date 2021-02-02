@@ -1,19 +1,48 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import firebase from "../../firebase";
+import md5 from "md5";
 function RegisterPage() {
-  const { register, watch, errors } = useForm();
+  const { register, watch, errors, handleSubmit } = useForm();
+  const [errorFromSubmit, setErrorFromSubmit] = useState();
+  const [loading, setLoading] = useState(false);
   const password = useRef();
   password.current = watch("password");
-  console.log(watch("email"));
-  console.log("passowrd.current", password.current);
+
+  const onSubmit = async (data) => {
+    try {
+      setLoading(true);
+      console.log(data);
+      let createdUser = await firebase
+        .auth()
+        .createUserWithEmailAndPassword(data.email, data.password);
+
+      await createdUser.user.updateProfile({
+        displayName: data.name,
+        photoURL: `http:gravatar.com/avatar/${md5(
+          createdUser.user.email
+        )}?d=identicon`,
+      });
+
+      console.log("createdUser", createdUser);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setErrorFromSubmit(error.message);
+      setLoading(false);
+      setTimeout(() => {
+        setErrorFromSubmit("");
+      }, 5000);
+    }
+  };
 
   return (
     <div className="auth-wrapper">
       <div style={{ textAlign: "center" }}>
         <h3>Register</h3>
       </div>
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <label>Email</label>
         <input
           name="email"
@@ -33,7 +62,7 @@ function RegisterPage() {
         <input
           name="password"
           type="password"
-          ref={register({ required: true, minLength: 10 })}
+          ref={register({ required: true, minLength: 6 })}
         />
         {errors.password && errors.password.type === "required" && (
           <p>This password field is required</p>
@@ -58,8 +87,9 @@ function RegisterPage() {
           errors.password_confirm.type === "validate" && (
             <p>This password do not match</p>
           )}
+        {errorFromSubmit && <p>{errorFromSubmit}</p>}
 
-        <input type="submit" />
+        <input type="submit" disabled={loading} />
         <Link to="/login" style={{ color: "gray", textDecoration: "none" }}>
           이미 아이디가 있다면...
         </Link>
