@@ -18,6 +18,7 @@ function RegisterPage() {
         .auth()
         .createUserWithEmailAndPassword(data.email, data.password);
 
+      console.log("createdUser", createdUser);
       await createdUser.user.updateProfile({
         displayName: data.name,
         photoURL: `http:gravatar.com/avatar/${md5(
@@ -25,7 +26,12 @@ function RegisterPage() {
         )}?d=identicon`,
       });
 
-      console.log("createdUser", createdUser);
+      //Firebase 데이터베이스에 저장해주기
+      await firebase.database().ref("users").child(createdUser.user.uid).set({
+        name: createdUser.user.displayName,
+        image: createdUser.user.photoURL,
+      });
+
       setLoading(false);
     } catch (error) {
       console.log(error);
