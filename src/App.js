@@ -28,7 +28,7 @@ function App() {
     });
   }, [dispatch, history]);
   if (isLoading) {
-    return <div>...loading</div>;
+    return <div>...loading?</div>;
   } else {
     return (
       <Switch>
