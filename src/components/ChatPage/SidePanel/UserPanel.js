@@ -1,11 +1,34 @@
-import React from "react";
+import React, { useRef } from "react";
 import { IoIosChatboxes } from "react-icons/io";
 import Dropdown from "react-bootstrap/Dropdown";
 import Image from "react-bootstrap/Image";
 import { useSelector } from "react-redux";
 import firebase from "../../../firebase";
+import mime from "mime-types";
 function UserPanel() {
   const user = useSelector((state) => state.user.currentUser);
+
+  const inputOpenImageRef = useRef("");
+
+  const handleOpenImageRef = () => {
+    inputOpenImageRef.current.click();
+  };
+
+  const handleUploadImage = async (event) => {
+    const file = event.target.files[0];
+    const metadata = { contentType: mime.lookup(file.name) };
+
+    try {
+      // 스토리지에 파일 저장하기
+      let uploadTaskSnapshot = await firebase
+        .storage()
+        .ref()
+        .child(`user_image/${user.uid}`)
+        .put(file, metadata);
+
+      console.log("uploadTaskSnapshot", uploadTaskSnapshot);
+    } catch (error) {}
+  };
   const handleLogout = () => {
     firebase.auth().signOut();
   };
@@ -31,11 +54,22 @@ function UserPanel() {
           </Dropdown.Toggle>
 
           <Dropdown.Menu>
-            <Dropdown.Item href="#/action-1">프로필 사진 변경</Dropdown.Item>
+            <Dropdown.Item onClick={handleOpenImageRef}>
+              프로필 사진 변경
+            </Dropdown.Item>
             <Dropdown.Item onClick={handleLogout}>로그아웃</Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>
       </div>
+
+      {/* 안보이는곳에 넣어줌 */}
+      <input
+        onChange={handleUploadImage}
+        accept="image/jpeg, image/png"
+        type="file"
+        style={{ display: "none" }}
+        ref={inputOpenImageRef}
+      />
     </div>
   );
 }
