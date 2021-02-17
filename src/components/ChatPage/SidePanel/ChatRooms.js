@@ -7,12 +7,27 @@ import { connect } from "react-redux";
 import { FaRegSmileWink, FaPlus } from "react-icons/fa";
 import firebase from "../../../firebase";
 export class ChatRooms extends Component {
-  
   state = {
     show: false,
     name: "",
     description: "",
     chatRoomsRef: firebase.database().ref("chatRooms"),
+    chatRooms: [],
+  };
+
+  componentDidMount() {
+    this.AddChatRoomsListeners();
+  }
+  AddChatRoomsListeners = () => {
+    let chatRoomsArray = [];
+
+    this.state.chatRoomsRef.on("child_added", (DataSnapshot) => {
+      chatRoomsArray.push(DataSnapshot.val());
+      this.setState({
+        chatRooms: chatRoomsArray,
+      });
+      console.log("chatRoomsArray", chatRoomsArray);
+    });
   };
 
   handleClose = () => this.setState({ show: false });
@@ -28,6 +43,10 @@ export class ChatRooms extends Component {
   };
 
   isFormValid = (name, description) => name && description;
+
+  renderChatRooms = (chatRooms) =>
+    chatRooms.length > 0 &&
+    chatRooms.map((room) => <li key={room.id}>#{room.name}</li>);
 
   addChatRoom = async () => {
     const key = this.state.chatRoomsRef.push().key;
@@ -73,6 +92,10 @@ export class ChatRooms extends Component {
             style={{ position: "absolute", right: 0, cursor: "pointer" }}
           />
         </div>
+
+        <ul style={{ listStyleType: "none", padding: 0 }}>
+          {this.renderChatRooms(this.state.chatRooms)}
+        </ul>
 
         {/* ADD CHAT ROOM MODAL */}
 
