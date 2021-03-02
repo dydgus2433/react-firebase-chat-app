@@ -7,7 +7,7 @@ export class MainPanel extends Component {
   render() {
     return (
       <div style={{ padding: "2rem 2rem 0 2rem" }}>
-        <MessageForm />
+        <MessageHeader />
 
         <div
           style={{
