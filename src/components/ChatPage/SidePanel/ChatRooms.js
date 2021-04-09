@@ -84,7 +84,7 @@ export class ChatRooms extends Component {
     ));
 
   addChatRoom = async () => {
-    const key = this.state.chatRoomsRef.push().key;
+    const key = await this.state.chatRoomsRef.push().key;
     const { name, description } = this.state;
     const { user } = this.props;
     const newChatRoom = {
