@@ -9,6 +9,9 @@ export class MainPanel extends Component {
     messages: [],
     messagesRef: firebase.database().ref("messages"),
     messagesLoading: true,
+    searchTerm: "",
+    searchResults: [],
+    searchLoading: false,
   };
   componentDidMount() {
     const { chatRoom } = this.props;
@@ -16,6 +19,34 @@ export class MainPanel extends Component {
       this.addMessagesListeners(chatRoom.id);
     }
   }
+
+  handleSearchMessages = () => {
+    debugger;
+    const chatRoomMessages = [...this.state.messages];
+    const regex = new RegExp(this.state.searchTerm, "gi");
+    const searchResults = chatRoomMessages.reduce((acc, message) => {
+      if (
+        (message.content && message.content.match(regex)) ||
+        (message.user.name && message.user.name.match(regex))
+      ) {
+        acc.push(message);
+      }
+      return acc;
+    }, []);
+    this.setState({ searchResults });
+    setTimeout(() => this.setState({ searchLoading: false }), 1000);
+  };
+
+  handleSearchChange = (event) => {
+    debugger;
+    this.setState(
+      {
+        searchTerm: event.target.value,
+        searchLoading: true,
+      },
+      () => this.handleSearchMessages()
+    );
+  };
 
   componentWillUnmount() {
     this.state.messagesRef.off();
@@ -41,11 +72,11 @@ export class MainPanel extends Component {
       />
     ));
   render() {
-    const { messages } = this.state;
+    const { messages, searchTerm, searchResults } = this.state;
     console.log(messages);
     return (
       <div style={{ padding: "2rem 2rem 0 2rem" }}>
-        <MessageHeader />
+        <MessageHeader handleSearchChanges={this.handleSearchChange} />
 
         <div
           style={{
@@ -58,7 +89,9 @@ export class MainPanel extends Component {
             overflowY: "auto",
           }}
         >
-          {this.renderMessages(messages)}
+          {searchTerm
+            ? this.renderMessages(searchResults)
+            : this.renderMessages(messages)}
         </div>
 
         <MessageForm />
